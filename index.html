@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FocusBoard</title>
+  </head>
+  <body>
+
+  <form id="task-form">
+    <input type="text" id="task-title" placeholder="Название задачи" required />
+    <input type="text" id="task-project" placeholder="Проект" required />
+    <input type="number" id="task-minutes" placeholder="Минут" required />
+    <input type="date" id="task-deadline" required />
+    <button type="submit">Добавить задачу</button>
+  </form>
+
+<button id="theme-toggle">🌗 Переключить тему</button>
+
+<button id="export-btn">📤 Экспорт</button>
+<input type="file" id="import-input" hidden />
+<button id="import-btn">📥 Импорт</button>
+
+
+    <div id="board"></div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
+
