@@ -1,32 +1,29 @@
-name: CI Pipeline
+# .github/workflows/ci.yml
+name: CI
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: 🧾 Checkout репозиторий
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      - name: ⚙️ Установка Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
 
-      - name: 📦 Установка зависимостей
-        run: npm ci
+      - name: Install dependencies
+        run: npm install
 
-      - name: 🔍 Запуск линтера
+      - name: Run ESLint
         run: npm run lint
 
-      - name: 🧪 Запуск тестов
-        run: npm run test
-
-      - name: 🏗️ Сборка проекта
+      - name: Run build
         run: npm run build
