@@ -1,0 +1,32 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🧾 Checkout репозиторий
+        uses: actions/checkout@v3
+
+      - name: ⚙️ Установка Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: 📦 Установка зависимостей
+        run: npm ci
+
+      - name: 🔍 Запуск линтера
+        run: npm run lint
+
+      - name: 🧪 Запуск тестов
+        run: npm run test
+
+      - name: 🏗️ Сборка проекта
+        run: npm run build
