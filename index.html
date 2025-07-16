@@ -7,6 +7,19 @@
   </head>
   <body>
 
+<nav>
+  <button id="kanban-btn">Доска</button>
+  <button id="analytics-btn">Аналитика</button>
+</nav>
+<div id="app">
+  <div id="board"></div>
+  <div id="analytics" style="display: none;">
+    <canvas id="line-chart"></canvas>
+    <canvas id="pie-chart"></canvas>
+  </div>
+</div>
+
+
   <form id="task-form">
     <input type="text" id="task-title" placeholder="Название задачи" required />
     <input type="text" id="task-project" placeholder="Проект" required />
