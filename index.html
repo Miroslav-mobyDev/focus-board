@@ -1,25 +1,33 @@
 <!DOCTYPE html>
 <html lang="ru">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FocusBoard</title>
-  </head>
-  <body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FocusBoard</title>
+</head>
+<body>
 
-<nav>
-  <button id="kanban-btn">Доска</button>
-  <button id="analytics-btn">Аналитика</button>
-</nav>
-<div id="app">
-  <div id="board"></div>
-  <div id="analytics" style="display: none;">
-    <canvas id="line-chart"></canvas>
-    <canvas id="pie-chart"></canvas>
+  <!-- Навигация -->
+  <nav>
+    <button id="kanban-btn">📋 Доска</button>
+    <button id="analytics-btn">📊 Аналитика</button>
+    <button id="export-btn">📤 Экспорт</button>
+    <button id="import-btn">📥 Импорт</button>
+    <input type="file" id="import-input" hidden />
+    <button id="theme-toggle">🌗 Переключить тему</button>
+  </nav>
+
+  <!-- Основной контейнер -->
+  <div id="app">
+    <div id="board"></div>
+
+    <div id="analytics" style="display: none;">
+      <canvas id="line-chart"></canvas>
+      <canvas id="pie-chart"></canvas>
+    </div>
   </div>
-</div>
 
-
+  <!-- Форма добавления задач -->
   <form id="task-form">
     <input type="text" id="task-title" placeholder="Название задачи" required />
     <input type="text" id="task-project" placeholder="Проект" required />
@@ -28,15 +36,7 @@
     <button type="submit">Добавить задачу</button>
   </form>
 
-<button id="theme-toggle">🌗 Переключить тему</button>
-
-<button id="export-btn">📤 Экспорт</button>
-<input type="file" id="import-input" hidden />
-<button id="import-btn">📥 Импорт</button>
-
-]
-    <div id="board"></div>
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <!-- Подключение скрипта -->
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
-
