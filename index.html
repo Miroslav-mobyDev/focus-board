@@ -3,41 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/focus-board/manifest.webmanifest" />
+    <meta name="theme-color" content="#4caf50" />
     <title>FocusBoard</title>
-    <script type="module" crossorigin src="/focus-board/assets/index-gW_w_1E9.js"></script>
-    <link rel="stylesheet" crossorigin href="/focus-board/assets/index-C8fLWJD_.css">
-  </head>
+    <script type="module" crossorigin src="./assets/index-DMgEZ67x.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-C2PMf7OC.css">
+  <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
   <body>
+    <!-- Навигация -->
+    <nav>
+      <button id="kanban-btn" class="btn">📋 Доска</button>
+      <button id="analytics-btn" class="btn">📊 Аналитика</button>
+      <button id="export-btn" class="btn">📤 Экспорт</button>
+      <button id="import-btn" class="btn">📥 Импорт</button>
+      <input type="file" id="import-input" hidden />
+      <button id="theme-toggle" class="btn">🌗 Переключить тему</button>
+    </nav>
 
-<nav>
-  <button id="kanban-btn">Доска</button>
-  <button id="analytics-btn">Аналитика</button>
-</nav>
-<div id="app">
-  <div id="board"></div>
-  <div id="analytics" style="display: none;">
-    <canvas id="line-chart"></canvas>
-    <canvas id="pie-chart"></canvas>
-  </div>
-</div>
+    <div id="app">
+      <div id="board" style="display:flex;"></div>
+      <div id="analytics" style="display: none;"></div>
+    </div>
 
+    <form id="task-form">
+      <input type="text" id="task-title" placeholder="Название задачи" required />
+      <input type="text" id="task-project" placeholder="Проект" required />
+      <input type="number" id="task-minutes" placeholder="Минут" required />
+      <input type="date" id="task-deadline" required />
+      <button type="submit" class="btn">Добавить задачу</button>
+    </form>
 
-  <form id="task-form">
-    <input type="text" id="task-title" placeholder="Название задачи" required />
-    <input type="text" id="task-project" placeholder="Проект" required />
-    <input type="number" id="task-minutes" placeholder="Минут" required />
-    <input type="date" id="task-deadline" required />
-    <button type="submit">Добавить задачу</button>
-  </form>
-
-<button id="theme-toggle">🌗 Переключить тему</button>
-
-<button id="export-btn">📤 Экспорт</button>
-<input type="file" id="import-input" hidden />
-<button id="import-btn">📥 Импорт</button>
-
-]
-    <div id="board"></div>
+    <!-- ✅ Vite сам подставит скомпилированный JS -->
+    
   </body>
 </html>
-
