@@ -1,42 +1,38 @@
 <!DOCTYPE html>
 <html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>FocusBoard</title>
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="manifest" href="/focus-board/manifest.webmanifest" />
+    <meta name="theme-color" content="#4caf50" />
+    <title>FocusBoard</title>
+  </head>
+  <body>
+    <!-- Навигация -->
+    <nav>
+      <button id="kanban-btn" class="btn">📋 Доска</button>
+      <button id="analytics-btn" class="btn">📊 Аналитика</button>
+      <button id="export-btn" class="btn">📤 Экспорт</button>
+      <button id="import-btn" class="btn">📥 Импорт</button>
+      <input type="file" id="import-input" hidden />
+      <button id="theme-toggle" class="btn">🌗 Переключить тему</button>
+    </nav>
 
-  <!-- Навигация -->
-  <nav>
-    <button id="kanban-btn">📋 Доска</button>
-    <button id="analytics-btn">📊 Аналитика</button>
-    <button id="export-btn">📤 Экспорт</button>
-    <button id="import-btn">📥 Импорт</button>
-    <input type="file" id="import-input" hidden />
-    <button id="theme-toggle">🌗 Переключить тему</button>
-  </nav>
-
-  <!-- Основной контейнер -->
-  <div id="app">
-    <div id="board"></div>
-
-    <div id="analytics" style="display: none;">
-      <canvas id="line-chart"></canvas>
-      <canvas id="pie-chart"></canvas>
+    <div id="app">
+      <div id="board" style="display:flex;"></div>
+      <div id="analytics" style="display: none;"></div>
     </div>
-  </div>
 
-  <!-- Форма добавления задач -->
-  <form id="task-form">
-    <input type="text" id="task-title" placeholder="Название задачи" required />
-    <input type="text" id="task-project" placeholder="Проект" required />
-    <input type="number" id="task-minutes" placeholder="Минут" required />
-    <input type="date" id="task-deadline" required />
-    <button type="submit">Добавить задачу</button>
-  </form>
+    <form id="task-form">
+      <input type="text" id="task-title" placeholder="Название задачи" required />
+      <input type="text" id="task-project" placeholder="Проект" required />
+      <input type="number" id="task-minutes" placeholder="Минут" required />
+      <input type="date" id="task-deadline" required />
+      <button type="submit" class="btn">Добавить задачу</button>
+    </form>
 
-  <!-- Подключение скрипта -->
-  <script type="module" src="/src/main.ts"></script>
-</body>
+    <!-- ✅ Vite сам подставит скомпилированный JS -->
+    
+    <script type="module" src="/src/main.ts"></script>
+  </body>
 </html>

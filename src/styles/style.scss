@@ -1,4 +1,4 @@
-/* src/style.scss */
+/* ===== Переменные ===== */
 :root {
   --bg-color: #f4f6f5;
   --text-color: #2b2b2b;
@@ -15,17 +15,18 @@
   --card-bg: #2b2b2b;
   --border-color: #444;
   --accent-color: #4fa3ff;
-  --accent-text: #fff;
-  --hover-bright: #333;
+  --accent-text: #ffffff;
+  --hover-bright: #333333;
 }
 
+/* ===== Базовые стили ===== */
 body {
   margin: 0;
   padding: 1.5rem;
   font-family: 'Segoe UI', Tahoma, sans-serif;
   background-color: var(--bg-color);
   color: var(--text-color);
-  transition: background 0.3s, color 0.3s;
+  transition: background-color 0.3s, color 0.3s;
 }
 
 h1 {
@@ -35,86 +36,115 @@ h1 {
   color: var(--accent-color);
 }
 
-#theme-toggle,
-#export-btn,
-#import-btn {
+/* ===== Кнопки ===== */
+/* Исправление кнопок */
+button,
+.btn {
   background-color: var(--accent-color);
   color: var(--accent-text);
   border: none;
-  padding: 8px 14px;
-  border-radius: 6px;
-  cursor: pointer;
+  padding: 10px 16px;
+  border-radius: 8px;
   font-size: 14px;
-  transition: background-color 0.3s;
-  margin-left: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.3s, transform 0.2s;
+  white-space: nowrap;
+  min-width: 140px;
+  width: auto;
+  max-width: 180px;
+  text-align: center;
 }
 
-#theme-toggle:hover,
-#export-btn:hover,
-#import-btn:hover {
+button:hover,
+.btn:hover {
   background-color: #0056b3;
+  transform: translateY(-1px);
 }
 
-#controls {
-  text-align: right;
-  margin-bottom: 1rem;
+
+/* ===== Контейнер ===== */
+#app {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
 }
 
+/* ===== Навигация ===== */
+nav {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ===== Доска (Kanban) ===== */
 #board {
   display: flex;
   flex-wrap: wrap;
   gap: 1.5rem;
-  margin-top: 1rem;
   justify-content: center;
+  align-items: flex-start;
+  padding: 1rem 0;
 }
 
 .kanban-column {
   flex: 1 1 300px;
+  max-width: 340px;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-radius: 12px;
   padding: 1rem;
-  max-width: 350px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-  transition: background 0.3s;
+  min-width: 260px;
+  transition: background-color 0.3s;
 }
 
 .kanban-column h3 {
-  margin-top: 0;
   font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  color: var(--accent-color);
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 0.5rem;
-  color: var(--accent-color);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .kanban-tasks {
-  margin-top: 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  margin-top: 1rem;
   min-height: 100px;
 }
 
+/* ===== Карточка задачи ===== */
 .task-card {
-  background: var(--card-bg);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  background-color: var(--card-bg);
   border: 1px solid var(--border-color);
   border-left: 4px solid var(--accent-color);
   padding: 0.75rem;
   border-radius: 8px;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  transition: transform 0.2s ease, background 0.3s ease;
+  transition: background 0.3s, transform 0.2s;
 }
 
 .task-card:hover {
-  transform: translateY(-2px);
   background-color: var(--hover-bright);
+  transform: translateY(-2px);
 }
 
 .task-card strong {
-  font-size: 16px;
   display: block;
-  margin-bottom: 4px;
+  font-size: 16px;
   color: var(--accent-color);
+  margin-bottom: 4px;
 }
 
 .task-card span {
@@ -122,68 +152,101 @@ h1 {
   line-height: 1.4;
 }
 
-.start-btn,
-.manual-add-btn {
-  margin-top: 0.5rem;
-  padding: 4px 10px;
-  border: none;
-  background-color: var(--accent-color);
-  color: var(--accent-text);
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 13px;
-  margin-right: 6px;
-}
-
-.start-btn:hover,
-.manual-add-btn:hover {
-  background-color: #0056b3;
-}
-
+/* ===== Drag & Drop ===== */
 .drag-over {
   background-color: rgba(0, 123, 255, 0.08);
   border: 2px dashed var(--accent-color);
 }
 
-form#task-form {
-  margin-bottom: 1.5rem;
+/* ===== Форма задач ===== */
+#task-form {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 1rem;
-  justify-content: center;
+  width: 100%;
+  max-width: 600px;
+  margin: 2rem auto;
+  padding: 1.5rem;
   background-color: var(--card-bg);
   border: 1px solid var(--border-color);
-  padding: 1rem;
-  border-radius: 10px;
+  border-radius: 12px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  transition: background-color 0.3s;
 }
 
-form#task-form input,
-form#task-form button {
-  font-size: 14px;
-  padding: 8px 10px;
+#task-form input,
+#task-form button {
+  font-size: 15px;
+  padding: 10px 14px;
   border: 1px solid var(--border-color);
   border-radius: 6px;
   background-color: var(--bg-color);
   color: var(--text-color);
+  transition: border-color 0.3s, background-color 0.3s;
+  width: 100%;
+  box-sizing: border-box;
 }
 
-form#task-form input:focus {
+#task-form input:focus {
   outline: none;
   border-color: var(--accent-color);
 }
 
-form#task-form button {
+#task-form button {
   background-color: var(--accent-color);
   color: var(--accent-text);
-  cursor: pointer;
-  transition: background-color 0.3s;
+  font-weight: 600;
 }
 
-form#task-form button:hover {
-  background-color: #0056b3;
+/* ===== Аналитика ===== */
+#analytics {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2rem;
 }
 
+#analytics canvas {
+  max-width: 100%;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+}
+
+.task-buttons {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.task-buttons .btn.small {
+  padding: 6px 12px;
+  font-size: 13px;
+  border-radius: 6px;
+  white-space: nowrap;
+  min-width: auto;
+  flex-shrink: 0;
+}
+
+.timer-display {
+  font-size: 13px;
+  color: var(--text-color);
+  margin-left: auto;
+}
+
+
+/* ===== Адаптив ===== */
 @media (max-width: 768px) {
+  nav {
+    flex-direction: column;
+    align-items: center;
+  }
+
   #board {
     flex-direction: column;
     align-items: center;
@@ -191,9 +254,21 @@ form#task-form button:hover {
 
   .kanban-column {
     width: 90%;
+    max-width: 100%;
   }
 
-  form#task-form {
-    flex-direction: column;
+  #task-form {
+    width: 100%;
+    padding: 1rem;
+    gap: 0.75rem;
+  }
+
+  .btn {
+    width: 100%;
+    max-width: 320px;
+  }
+
+  #analytics canvas {
+    max-height: 300px;
   }
 }

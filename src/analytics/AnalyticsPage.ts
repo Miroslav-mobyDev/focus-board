@@ -1,7 +1,34 @@
 // src/analytics/AnalyticsPage.ts
-import { Chart } from 'chart.js';
+
+import {
+  Chart,
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  Title,
+  CategoryScale,
+  PieController,
+  ArcElement,
+  Tooltip,
+  Legend
+} from 'chart.js';
+
 import type { BoardData } from '../data/types';
 import './analytics.scss';
+
+Chart.register(
+  LineController,
+  LineElement,
+  PointElement,
+  LinearScale,
+  Title,
+  CategoryScale,
+  PieController,
+  ArcElement,
+  Tooltip,
+  Legend
+);
 
 export function renderAnalytics(data: BoardData) {
   const analyticsEl = document.getElementById('analytics')!;
@@ -10,7 +37,7 @@ export function renderAnalytics(data: BoardData) {
     <canvas id="pie-chart"></canvas>
   `;
 
-  // 1. Линейный график — сколько минут потрачено в каждый день
+  // 1. Линейный график
   const dayMap = new Map<string, number>();
   data.tasks.forEach(task => {
     const date = task.deadline;
@@ -28,12 +55,13 @@ export function renderAnalytics(data: BoardData) {
         label: 'Минут по дням',
         data: minutesByDay,
         borderColor: 'blue',
-        fill: false
+        backgroundColor: 'rgba(0,0,255,0.1)',
+        fill: true
       }]
     }
   });
 
-  // 2. Круговая диаграмма — сколько времени ушло на каждый проект
+  // 2. Круговая диаграмма
   const projectMap = new Map<string, number>();
   data.tasks.forEach(task => {
     projectMap.set(task.project, (projectMap.get(task.project) || 0) + task.spentMinutes);

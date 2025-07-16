@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+     "build": "vite build && node generate-sw.cjs",
     "preview": "vite preview",
     "lint": "eslint . --ext .ts,.tsx --fix",
     "deploy": "npm run build && git add dist -f && git commit -m 'Deploy' && git subtree push --prefix dist origin gh-pages"
@@ -21,7 +21,9 @@
     "sass-embedded": "^1.89.2",
     "typescript": "~5.8.3",
     "vite": "^7.0.4",
-    "vite-plugin-static-copy": "^3.1.1"
+    "vite-plugin-pwa": "^1.0.1",
+    "vite-plugin-static-copy": "^3.1.1",
+    "workbox-build": "^7.3.0"
   },
   "dependencies": {
     "chart.js": "^4.5.0"
