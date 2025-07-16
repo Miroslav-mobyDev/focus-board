@@ -1,4 +1,4 @@
-// src/utils/storage.ts
+
 
 import type { BoardData } from '../data/types';
 

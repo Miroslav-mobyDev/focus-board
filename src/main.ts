@@ -1,7 +1,9 @@
-// src/main.ts
+
 import "./styles/style.scss";
 import { loadBoard, saveBoard } from './utils/storage';
 import type { Task, TaskStatus } from './data/types';
+import { exportBoard, importBoard } from './utils/exportimport';
+import { renderAnalytics } from './analytics/AnalyticsPage';
 
 const statuses: TaskStatus[] = ['todo', 'in-progress', 'done'];
 const boardEl = document.getElementById('board')!;
@@ -32,7 +34,7 @@ const addBtn = document.createElement('button');
 addBtn.textContent = '➕ Добавить минуты';
 addBtn.style.marginLeft = '10px';
 
-// 👇 Показывать кнопку только если задача уже началась
+
 if (task.status === 'todo') {
   addBtn.style.display = 'none';
 }
@@ -292,15 +294,7 @@ const importBtn = document.getElementById('import-btn')!;
 const importInput = document.getElementById('import-input') as HTMLInputElement;
 
 exportBtn.addEventListener('click', () => {
-  const json = JSON.stringify(boardData, null, 2);
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'focus-board.json';
-  link.click();
-  URL.revokeObjectURL(url);
+  exportBoard(); 
 });
 
 importBtn.addEventListener('click', () => {
@@ -311,19 +305,25 @@ importInput.addEventListener('change', () => {
   const file = importInput.files?.[0];
   if (!file) return;
 
-  const reader = new FileReader();
-  reader.onload = () => {
-    try {
-      const imported = JSON.parse(reader.result as string);
-      if (imported && Array.isArray(imported.tasks)) {
-        localStorage.setItem('focusBoard', JSON.stringify(imported));
-        window.location.reload();
-      } else {
-        alert('Неверный формат файла.');
-      }
-    } catch (err) {
-      alert('Ошибка при импорте: ' + err);
-    }
-  };
-  reader.readAsText(file);
+  importBoard(file)
+    .then(() => {
+      alert('Импорт завершён успешно. Страница будет перезагружена.');
+    })
+    .catch(() => {
+      alert('Ошибка при импорте. Убедитесь, что файл корректен.');
+    });
+});
+
+const boardContainer = document.getElementById('board')!;
+const analyticsContainer = document.getElementById('analytics')!;
+
+document.getElementById('kanban-btn')?.addEventListener('click', () => {
+  boardContainer.style.display = 'block';
+  analyticsContainer.style.display = 'none';
+});
+
+document.getElementById('analytics-btn')?.addEventListener('click', () => {
+  boardContainer.style.display = 'none';
+  analyticsContainer.style.display = 'block';
+  renderAnalytics(boardData);
 });

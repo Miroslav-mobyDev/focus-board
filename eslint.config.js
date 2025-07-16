@@ -1,4 +1,4 @@
-// eslint.config.js
+
 
 import eslintPluginImport from 'eslint-plugin-import';
 import eslintConfigPrettier from 'eslint-config-prettier';
