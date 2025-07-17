@@ -1,11 +1,8 @@
-
 import "./styles/style.scss";
 import { loadBoard, saveBoard } from './utils/storage';
 import type { Task, TaskStatus } from './data/types';
 import { exportBoard, importBoard } from './utils/exportimport';
 import { renderAnalytics } from './analytics/AnalyticsPage';
-
-
 
 const statuses: TaskStatus[] = ['todo', 'in-progress', 'done'];
 const boardEl = document.getElementById('board')!;
@@ -38,22 +35,19 @@ function createTaskCard(task: Task): HTMLElement {
   const addBtn = card.querySelector('.add-btn') as HTMLButtonElement;
   const timerDisplay = card.querySelector('.timer-display') as HTMLSpanElement;
   const spentSpan = card.querySelector('.spent') as HTMLSpanElement;
-  const taskId = task.id;
   const deleteBtn = card.querySelector('.delete-btn') as HTMLButtonElement;
 
   deleteBtn.addEventListener('click', () => {
-  if (confirm('Удалить эту задачу?')) {
-    const index = boardData.tasks.findIndex(t => t.id === task.id);
-    if (index !== -1) {
-      boardData.tasks.splice(index, 1);
-      saveBoard(boardData);
-      renderBoard();
+    if (confirm('Удалить эту задачу?')) {
+      const index = boardData.tasks.findIndex(t => t.id === task.id);
+      if (index !== -1) {
+        boardData.tasks.splice(index, 1);
+        saveBoard(boardData);
+        renderBoard();
+      }
     }
-  }
-});
+  });
 
-
-  
   addBtn.addEventListener('click', () => {
     const input = prompt('Сколько минут добавить?');
     const extra = Number(input);
@@ -68,7 +62,6 @@ function createTaskCard(task: Task): HTMLElement {
     }
   });
 
-  // === Если задача завершена ===
   if (task.status === 'done') {
     timerDisplay.textContent = `✅ Выполнено за ${task.spentMinutes} мин`;
     startBtn.remove();
@@ -76,18 +69,16 @@ function createTaskCard(task: Task): HTMLElement {
     return card;
   }
 
-  // === Если задача была в процессе и есть startTime ===
   if (task.startTime) {
     const passed = Math.floor((Date.now() - task.startTime) / 1000);
-    activeSeconds.set(taskId, passed);
+    activeSeconds.set(task.id, passed);
     timerDisplay.textContent = `⏱ ${passed} сек`;
     spentSpan.textContent = task.spentMinutes.toString();
     startTimer(task, spentSpan, timerDisplay);
   }
 
-  // === Старт таймера по кнопке ===
   startBtn.addEventListener('click', () => {
-    if (activeTimers.has(taskId)) return;
+    if (activeTimers.has(task.id)) return;
 
     if (task.status !== 'in-progress') {
       task.status = 'in-progress';
@@ -99,10 +90,8 @@ function createTaskCard(task: Task): HTMLElement {
     startTimer(task, spentSpan, timerDisplay);
   });
 
-  
   return card;
 }
-
 
 function startTimer(task: Task, spentSpan: HTMLElement, timerDisplay: HTMLElement) {
   const taskId = task.id;
@@ -232,9 +221,6 @@ form?.addEventListener('submit', (e) => {
   const plannedMinutes = parseInt(minutesInput.value);
   const deadline = deadlineInput.value;
 
-  const today = new Date();
-  const inputDate = new Date(deadline);
-
   if (!title || !project || !deadline || isNaN(plannedMinutes)) {
     alert("Пожалуйста, заполните все поля.");
     return;
@@ -245,6 +231,8 @@ form?.addEventListener('submit', (e) => {
     return;
   }
 
+  const today = new Date();
+  const inputDate = new Date(deadline);
   if (inputDate < today) {
     alert("Дата дедлайна не может быть в прошлом.");
     return;
@@ -266,7 +254,7 @@ form?.addEventListener('submit', (e) => {
   form.reset();
 });
 
-// Автоматическая задача для первого запуска
+// Добавляем стартовую задачу при первом запуске
 if (boardData.tasks.length === 0) {
   boardData.tasks.push({
     id: '1',
@@ -282,17 +270,15 @@ if (boardData.tasks.length === 0) {
 
 renderBoard();
 
-
+// === Переключение темной/светлой темы ===
 const themeToggle = document.getElementById('theme-toggle')!;
 const root = document.documentElement;
 
-// Загружаем тему из localStorage
 const savedTheme = localStorage.getItem('theme');
 if (savedTheme) {
   root.setAttribute('data-theme', savedTheme);
 }
 
-// Переключение темы
 themeToggle.addEventListener('click', () => {
   const current = root.getAttribute('data-theme');
   const next = current === 'dark' ? 'light' : 'dark';
@@ -300,65 +286,47 @@ themeToggle.addEventListener('click', () => {
   localStorage.setItem('theme', next);
 });
 
+// === Импорт / Экспорт ===
 const exportBtn = document.getElementById('export-btn')!;
 const importBtn = document.getElementById('import-btn')!;
 const importInput = document.getElementById('import-input') as HTMLInputElement;
 
-exportBtn.addEventListener('click', () => {
-  exportBoard(); 
-});
+exportBtn.addEventListener('click', () => exportBoard());
 
-importBtn.addEventListener('click', () => {
-  importInput.click();
-});
+importBtn.addEventListener('click', () => importInput.click());
 
 importInput.addEventListener('change', () => {
   const file = importInput.files?.[0];
   if (!file) return;
 
   importBoard(file)
-    .then(() => {
-      alert('Импорт завершён успешно. Страница будет перезагружена.');
-    })
-    .catch(() => {
-      alert('Ошибка при импорте. Убедитесь, что файл корректен.');
-    });
+    .then(() => alert('Импорт завершён успешно. Страница будет перезагружена.'))
+    .catch(() => alert('Ошибка при импорте. Убедитесь, что файл корректен.'));
 });
 
-const boardContainer = document.getElementById('board')!;
-const analyticsContainer = document.getElementById('analytics')!;
-
-document.getElementById('kanban-btn')?.addEventListener('click', () => {
-  boardContainer.style.display = 'flex';
-  analyticsContainer.style.display = 'none';
-});
-
-document.getElementById('analytics-btn')?.addEventListener('click', () => {
-  boardContainer.style.display = 'none';
-  analyticsContainer.style.display = 'block';
-  renderAnalytics(boardData);
-});
+// === Переключение между Kanban и Аналитикой ===
 const analyticsBtn = document.getElementById("analytics-btn") as HTMLButtonElement;
 const kanbanBtn = document.getElementById("kanban-btn") as HTMLButtonElement;
-const board = document.getElementById("board") as HTMLElement;
-const analytics = document.getElementById("analytics") as HTMLElement;
 const taskForm = document.getElementById("task-form") as HTMLElement;
+const analyticsContainer = document.getElementById("analytics") as HTMLElement;
 
 analyticsBtn.addEventListener("click", () => {
-  board.style.display = "none";
-  analytics.style.display = "flex";
-  taskForm.style.display = "none"; // скрываем форму
+  boardEl.style.display = "none";
+  analyticsContainer.style.display = "flex";
+  taskForm.style.display = "none";
+  renderAnalytics(boardData);
 });
 
 kanbanBtn.addEventListener("click", () => {
-  board.style.display = "flex";
-  analytics.style.display = "none";
-  taskForm.style.display = "flex"; // возвращаем форму
+  boardEl.style.display = "flex";
+  analyticsContainer.style.display = "none";
+  taskForm.style.display = "flex";
 });
 
+// === Service Worker ===
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/focus-board/sw.js')
+    navigator.serviceWorker.register('/sw.js')
       .then(reg => console.log('✅ Service Worker зарегистрирован:', reg.scope))
       .catch(err => console.error('❌ Ошибка регистрации SW:', err));
   });

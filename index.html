@@ -3,36 +3,84 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="manifest" href="/focus-board/manifest.webmanifest" />
-    <meta name="theme-color" content="#4caf50" />
+    
+    <meta name="theme-color" content="#6c63ff" />
     <title>FocusBoard</title>
   </head>
-  <body>
-    <!-- Навигация -->
-    <nav>
-      <button id="kanban-btn" class="btn">📋 Доска</button>
-      <button id="analytics-btn" class="btn">📊 Аналитика</button>
-      <button id="export-btn" class="btn">📤 Экспорт</button>
-      <button id="import-btn" class="btn">📥 Импорт</button>
-      <input type="file" id="import-input" hidden />
-      <button id="theme-toggle" class="btn">🌗 Переключить тему</button>
-    </nav>
+<body>
+  <div class="container">
+    <div class="layout">
+      <!-- ✅ Боковая панель -->
+      <aside class="sidebar">
+        <h2>Навигация</h2>
+        <ul>
+          <li><button id="kanban-btn" class="btn btn-block">📋 Доска</button></li>
+          <li><button id="analytics-btn" class="btn btn-block">📊 Аналитика</button></li>
+        </ul>
 
-    <div id="app">
-      <div id="board" style="display:flex;"></div>
-      <div id="analytics" style="display: none;"></div>
+        <h2>Разделы</h2>
+        <ul>
+          <li>🔥 Цели</li>
+          <li>📌 Избранное</li>
+          <li>⏳ В процессе</li>
+          <li>✅ Выполнено</li>
+        </ul>
+      </aside>
+
+      <!-- Контент -->
+      <div class="content-area">
+      
+
+        <!-- Заголовок -->
+        <header class="header">
+          <h1 class="title">🎯 FocusBoard</h1>
+          <p class="subtitle">Доска продуктивности для твоих целей</p>
+          <div class="hero">
+            <span class="tagline">Организуй. Анализируй. Побеждай.</span>
+          </div>
+        </header>
+
+          <!-- Верхняя навигация -->
+        <nav class="nav-top">
+          <button id="export-btn" class="btn nav-btn"> Экспорт</button>
+          <button id="import-btn" class="btn nav-btn"> Импорт</button>
+          <input type="file" id="import-input" hidden />
+          <button id="theme-toggle" class="btn nav-btn">Сменить тему</button>
+        </nav>
+
+        <!-- Основной контент -->
+        <main id="app">
+          <section id="board" class="board"></section>
+          <section id="analytics" style="display: none;"></section>
+        </main>
+
+        <!-- Форма добавления задачи -->
+        <section class="form-section">
+          <form id="task-form">
+            <div class="form-row">
+              <input type="text" id="task-title" placeholder="Название задачи" required />
+              <input type="text" id="task-project" placeholder="Проект" required />
+            </div>
+            <div class="form-row">
+              <input type="number" id="task-minutes" placeholder="Минут" required />
+              <input type="date" id="task-deadline" required />
+            </div>
+            <button type="submit" class="btn">➕ Добавить задачу</button>
+          </form>
+        </section>
+      </div>
     </div>
 
-    <form id="task-form">
-      <input type="text" id="task-title" placeholder="Название задачи" required />
-      <input type="text" id="task-project" placeholder="Проект" required />
-      <input type="number" id="task-minutes" placeholder="Минут" required />
-      <input type="date" id="task-deadline" required />
-      <button type="submit" class="btn">Добавить задачу</button>
-    </form>
+    <!-- Футер -->
+    <footer class="footer">
+      <div class="footer-content">
+        <p><strong>FocusBoard Inc.</strong> &copy; 2025</p>
+        <p>📧 hello@focusboard.app | ☎️ +7 (900) 123-45-67</p>
+        <p>🌐 www.focusboard.app</p>
+      </div>
+    </footer>
+  </div>
 
-    <!-- ✅ Vite сам подставит скомпилированный JS -->
-    
-    <script type="module" src="/src/main.ts"></script>
-  </body>
+  <script type="module" src="/src/main.ts"></script>
+</body>
 </html>
