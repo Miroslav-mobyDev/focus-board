@@ -3,11 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#6c63ff" />
     <title>FocusBoard</title>
-    <script type="module" crossorigin src="./assets/index-C4JFN0m1.js"></script>
-    <link rel="stylesheet" crossorigin href="./assets/index-CHQsSb9y.css">
+    <script type="module" crossorigin src="./assets/index-BSIhleJA.js"></script>
+    <link rel="stylesheet" crossorigin href="./assets/index-Bogo6Imu.css">
   <link rel="manifest" href="./manifest.webmanifest"><script id="vite-plugin-pwa:register-sw" src="./registerSW.js"></script></head>
 <body>
   <div class="container">
@@ -20,14 +20,17 @@
           <li><button id="analytics-btn" class="btn btn-block">📊 Аналитика</button></li>
         </ul>
 
-        <h2>Разделы</h2>
-        <ul>
-          <li>🔥 Цели</li>
-          <li>📌 Избранное</li>
-          <li>⏳ В процессе</li>
-          <li>✅ Выполнено</li>
-        </ul>
+     <div id="sections">
+  <h2>Разделы</h2>
+  <div class="section-switch">
+  <button class="section-btn btn" data-section="urgent">⚡ Срочные</button>
+  <button class="section-btn btn" data-section="secondary">📌 Второстепенные</button>
+  <button class="section-btn btn" data-section="postpone">🕒 Перенести</button>
+</div>
+
+</div>
       </aside>
+
 
       <!-- Контент -->
       <div class="content-area">
@@ -50,11 +53,15 @@
           <button id="theme-toggle" class="btn nav-btn">Сменить тему</button>
         </nav>
 
+        <section id="section-tasks" style="display: none;"></section>
+
         <!-- Основной контент -->
         <main id="app">
-          <section id="board" class="board"></section>
-          <section id="analytics" style="display: none;"></section>
-        </main>
+  <section id="board" class="board"></section>
+  <section id="analytics" style="display: none;"></section>
+  <section id="section-tasks" style="display: none;"></section>
+</main>
+
 
         <!-- Форма добавления задачи -->
         <section class="form-section">
