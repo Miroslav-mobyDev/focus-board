@@ -10,24 +10,44 @@ const boardData = loadBoard();
 const activeTimers = new Map<string, number>();
 const activeSeconds = new Map<string, number>();
 
+
+function updateTaskPriorities(tasks: Task[]) {
+  const now = new Date();
+  tasks.forEach(task => {
+    if (!task.deadline) {
+      task.priority = undefined;
+      return;
+    }
+    const deadline = new Date(task.deadline);
+    const diff = deadline.getTime() - now.getTime();
+    if (diff <= 2 * 24 * 60 * 60 * 1000 && diff >= 0) {
+      task.priority = 'urgent';
+    } else if (diff > 3 * 24 * 60 * 60 * 1000) {
+      task.priority = 'secondary';
+    } else if (diff < 0) {
+      task.priority = 'postpone';
+    } else {
+      task.priority = undefined;
+    }
+  });
+}
+
 function createTaskCard(task: Task): HTMLElement {
   const card = document.createElement('div');
   card.className = 'task-card';
   card.draggable = true;
   card.dataset.id = task.id;
-
   card.innerHTML = `
     <strong>${task.title}</strong>
     <span>Проект: ${task.project}</span>
     <span>План: ${task.plannedMinutes} мин</span>
     <span>Выполнено: <span class="spent">${task.spentMinutes}</span> мин</span>
     <span>Срок: ${task.deadline}</span>
-
+    <span class="timer-display"></span>
     <div class="task-buttons">
       <button class="btn small start-btn">▶ Старт</button>
       <button class="btn small add-btn">➕ Минуты</button>
       <button class="btn small delete-btn">🗑 Удалить</button>
-      <span class="timer-display"></span>
     </div>
   `;
 
@@ -37,6 +57,14 @@ function createTaskCard(task: Task): HTMLElement {
   const spentSpan = card.querySelector('.spent') as HTMLSpanElement;
   const deleteBtn = card.querySelector('.delete-btn') as HTMLButtonElement;
 
+  // Отображение правильного текста на кнопке
+  if (task.status === 'in-progress') {
+    startBtn.textContent = '✔ Завершить';
+  } else {
+    startBtn.textContent = '▶ Старт';
+  }
+
+  // Удаление задачи
   deleteBtn.addEventListener('click', () => {
     if (confirm('Удалить эту задачу?')) {
       const index = boardData.tasks.findIndex(t => t.id === task.id);
@@ -48,10 +76,10 @@ function createTaskCard(task: Task): HTMLElement {
     }
   });
 
+  // Добавление минут вручную
   addBtn.addEventListener('click', () => {
     const input = prompt('Сколько минут добавить?');
     const extra = Number(input);
-
     if (!isNaN(extra) && extra > 0) {
       task.spentMinutes += extra;
       spentSpan.textContent = task.spentMinutes.toString();
@@ -62,6 +90,7 @@ function createTaskCard(task: Task): HTMLElement {
     }
   });
 
+  // Если задача уже завершена
   if (task.status === 'done') {
     timerDisplay.textContent = `✅ Выполнено за ${task.spentMinutes} мин`;
     startBtn.remove();
@@ -69,6 +98,7 @@ function createTaskCard(task: Task): HTMLElement {
     return card;
   }
 
+  // Если задача уже была запущена ранее — продолжаем отсчёт
   if (task.startTime) {
     const passed = Math.floor((Date.now() - task.startTime) / 1000);
     activeSeconds.set(task.id, passed);
@@ -77,42 +107,75 @@ function createTaskCard(task: Task): HTMLElement {
     startTimer(task, spentSpan, timerDisplay);
   }
 
+  // Логика старта/завершения задачи
   startBtn.addEventListener('click', () => {
-    if (activeTimers.has(task.id)) return;
-
-    if (task.status !== 'in-progress') {
+    if (task.status === 'todo') {
       task.status = 'in-progress';
+      task.startTime = Date.now();
+      activeSeconds.set(task.id, 0);
       saveBoard(boardData);
-      renderBoard();
+      startTimer(task, spentSpan, timerDisplay);
+       renderBoard();
+      startBtn.textContent = '✔ Завершить';
       return;
     }
 
-    startTimer(task, spentSpan, timerDisplay);
+    if (task.status === 'in-progress') {
+      const confirmDone = confirm('Завершить задачу?');
+      if (!confirmDone) return;
+
+      const intervalId = activeTimers.get(task.id);
+      if (intervalId !== undefined) {
+        clearInterval(intervalId);
+        activeTimers.delete(task.id);
+        const secondsElapsed = activeSeconds.get(task.id) ?? 0;
+        task.spentMinutes += Math.floor(secondsElapsed / 60);
+        activeSeconds.delete(task.id);
+      }
+
+      if (task.startTime) {
+        const extra = Math.floor((Date.now() - task.startTime) / 1000);
+        task.spentMinutes += Math.floor(extra / 60);
+        task.startTime = undefined;
+      }
+
+      task.status = 'done';
+      saveBoard(boardData);
+      renderBoard();
+    }
   });
+// Сброс, если вручную вернули в 'todo'
+if (task.status === 'todo') {
+  const intervalId = activeTimers.get(task.id);
+  if (intervalId !== undefined) {
+    clearInterval(intervalId);
+    activeTimers.delete(task.id);
+    activeSeconds.delete(task.id);
+  }
+  task.startTime = undefined;
+  startBtn.textContent = '▶ Старт';
+  timerDisplay.textContent = '';
+  spentSpan.textContent = task.spentMinutes.toString();
+}
 
   return card;
 }
 
+
 function startTimer(task: Task, spentSpan: HTMLElement, timerDisplay: HTMLElement) {
   const taskId = task.id;
   let seconds = activeSeconds.get(taskId) ?? 0;
-
-  if (!task.startTime) {
-    task.startTime = Date.now();
-  }
-
+  if (!task.startTime) task.startTime = Date.now();
   timerDisplay.textContent = `⏱ ${seconds} сек`;
 
   const interval = window.setInterval(() => {
     seconds++;
     activeSeconds.set(taskId, seconds);
     timerDisplay.textContent = `⏱ ${seconds} сек`;
-
     if (seconds % 60 === 0) {
       task.spentMinutes += 1;
       spentSpan.textContent = task.spentMinutes.toString();
     }
-
     saveBoard(boardData);
   }, 1000);
 
@@ -121,14 +184,13 @@ function startTimer(task: Task, spentSpan: HTMLElement, timerDisplay: HTMLElemen
 }
 
 function renderBoard() {
+  updateTaskPriorities(boardData.tasks); // ⬅️ [НОВОЕ]
   boardEl.innerHTML = '';
-
   statuses.forEach(status => {
     const column = document.createElement('div');
     column.className = 'kanban-column';
     column.dataset.status = status;
     column.innerHTML = `<h3>${getStatusName(status)}</h3>`;
-
     const container = document.createElement('div');
     container.className = 'kanban-tasks';
 
@@ -136,11 +198,9 @@ function renderBoard() {
       e.preventDefault();
       column.classList.add('drag-over');
     });
-
     column.addEventListener('dragleave', () => {
       column.classList.remove('drag-over');
     });
-
     column.addEventListener('drop', (e) => {
       column.classList.remove('drag-over');
       onDrop(e, status);
@@ -168,7 +228,6 @@ function onDragStart(e: DragEvent) {
 
 function onDrop(e: DragEvent, newStatus: TaskStatus) {
   e.preventDefault();
-
   const taskId = e.dataTransfer?.getData('text/plain');
   if (!taskId) return;
 
@@ -182,12 +241,10 @@ function onDrop(e: DragEvent, newStatus: TaskStatus) {
     if (intervalId !== undefined) {
       clearInterval(intervalId);
       activeTimers.delete(taskId);
-
       const secondsElapsed = activeSeconds.get(taskId) ?? 0;
       task.spentMinutes += Math.floor(secondsElapsed / 60);
       activeSeconds.delete(taskId);
     }
-
     if (task.startTime) {
       const extra = Math.floor((Date.now() - task.startTime) / 1000);
       task.spentMinutes += Math.floor(extra / 60);
@@ -210,7 +267,6 @@ function getStatusName(status: TaskStatus): string {
 const form = document.getElementById('task-form') as HTMLFormElement;
 form?.addEventListener('submit', (e) => {
   e.preventDefault();
-
   const titleInput = document.getElementById('task-title') as HTMLInputElement;
   const projectInput = document.getElementById('task-project') as HTMLInputElement;
   const minutesInput = document.getElementById('task-minutes') as HTMLInputElement;
@@ -223,18 +279,6 @@ form?.addEventListener('submit', (e) => {
 
   if (!title || !project || !deadline || isNaN(plannedMinutes)) {
     alert("Пожалуйста, заполните все поля.");
-    return;
-  }
-
-  if (plannedMinutes <= 0) {
-    alert("Количество минут должно быть больше 0.");
-    return;
-  }
-
-  const today = new Date();
-  const inputDate = new Date(deadline);
-  if (inputDate < today) {
-    alert("Дата дедлайна не может быть в прошлом.");
     return;
   }
 
@@ -254,7 +298,6 @@ form?.addEventListener('submit', (e) => {
   form.reset();
 });
 
-// Добавляем стартовую задачу при первом запуске
 if (boardData.tasks.length === 0) {
   boardData.tasks.push({
     id: '1',
@@ -267,63 +310,107 @@ if (boardData.tasks.length === 0) {
   });
   saveBoard(boardData);
 }
-
 renderBoard();
 
-// === Переключение темной/светлой темы ===
 const themeToggle = document.getElementById('theme-toggle')!;
 const root = document.documentElement;
-
 const savedTheme = localStorage.getItem('theme');
-if (savedTheme) {
-  root.setAttribute('data-theme', savedTheme);
-}
-
+if (savedTheme) root.setAttribute('data-theme', savedTheme);
 themeToggle.addEventListener('click', () => {
-  const current = root.getAttribute('data-theme');
-  const next = current === 'dark' ? 'light' : 'dark';
+  const next = root.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   root.setAttribute('data-theme', next);
   localStorage.setItem('theme', next);
 });
 
-// === Импорт / Экспорт ===
-const exportBtn = document.getElementById('export-btn')!;
-const importBtn = document.getElementById('import-btn')!;
-const importInput = document.getElementById('import-input') as HTMLInputElement;
-
-exportBtn.addEventListener('click', () => exportBoard());
-
-importBtn.addEventListener('click', () => importInput.click());
-
-importInput.addEventListener('change', () => {
-  const file = importInput.files?.[0];
+// Импорт / экспорт
+document.getElementById('export-btn')?.addEventListener('click', () => exportBoard());
+document.getElementById('import-btn')?.addEventListener('click', () => {
+  const input = document.getElementById('import-input') as HTMLInputElement;
+  input.click();
+});
+document.getElementById('import-input')?.addEventListener('change', () => {
+  const file = (document.getElementById('import-input') as HTMLInputElement).files?.[0];
   if (!file) return;
-
   importBoard(file)
-    .then(() => alert('Импорт завершён успешно. Страница будет перезагружена.'))
-    .catch(() => alert('Ошибка при импорте. Убедитесь, что файл корректен.'));
+    .then(() => {
+      alert('Импорт завершён.');
+      renderBoard();
+    })
+    .catch(() => alert('Ошибка при импорте.'));
 });
 
-// === Переключение между Kanban и Аналитикой ===
+// Аналитика и переключатели
 const analyticsBtn = document.getElementById("analytics-btn") as HTMLButtonElement;
 const kanbanBtn = document.getElementById("kanban-btn") as HTMLButtonElement;
 const taskForm = document.getElementById("task-form") as HTMLElement;
 const analyticsContainer = document.getElementById("analytics") as HTMLElement;
+const sectionTasksSection = document.getElementById("section-tasks")!;
+const boardSection = document.getElementById("board")!;
 
 analyticsBtn.addEventListener("click", () => {
-  boardEl.style.display = "none";
+  boardSection.style.display = "none";
   analyticsContainer.style.display = "flex";
+  sectionTasksSection.style.display = "none";
   taskForm.style.display = "none";
   renderAnalytics(boardData);
 });
-
 kanbanBtn.addEventListener("click", () => {
-  boardEl.style.display = "flex";
+  boardSection.style.display = "flex";
   analyticsContainer.style.display = "none";
+  sectionTasksSection.style.display = "none";
   taskForm.style.display = "flex";
+  renderBoard();
 });
 
-// === Service Worker ===
+// ⬅️ [НОВОЕ] Отрисовка разделов по приоритету
+document.querySelectorAll('.section-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const section = (btn as HTMLButtonElement).dataset.section!;
+    boardSection.style.display = 'none';
+    analyticsContainer.style.display = 'none';
+    taskForm.style.display = 'none';
+    sectionTasksSection.style.display = 'block';
+    renderSectionTasks(section);
+  });
+});
+
+function renderSectionTasks(section: string) {
+  updateTaskPriorities(boardData.tasks); // ⬅️ [НОВОЕ]
+  const filtered = boardData.tasks.filter(task => task.priority === section);
+  sectionTasksSection.innerHTML = `
+    <h2 class="section-title">${getSectionTitle(section)}</h2>
+    <button id="back-to-board" class="btn" style="margin-bottom:20px;">← Назад к доске</button>
+    ${filtered.map(renderTaskCardHTML).join('') || '<p>Нет задач в этом разделе.</p>'}
+  `;
+  document.getElementById('back-to-board')?.addEventListener('click', () => {
+    sectionTasksSection.style.display = 'none';
+    boardSection.style.display = 'flex';
+    taskForm.style.display = 'flex';
+    renderBoard();
+  });
+}
+
+function getSectionTitle(section: string): string {
+  switch (section) {
+    case 'urgent': return '⚡ Срочные задачи';
+    case 'secondary': return '📌 Второстепенные задачи';
+    case 'postpone': return '🕒 Перенести на потом';
+    default: return '';
+  }
+}
+
+function renderTaskCardHTML(task: Task): string {
+  return `
+    <div class="task-card">
+      <strong>${task.title}</strong>
+      <span>Проект: ${task.project}</span>
+      <span>Минут: ${task.plannedMinutes}</span>
+      <span>Дедлайн: ${task.deadline}</span>
+    </div>
+  `;
+}
+
+// PWA
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js')
@@ -331,7 +418,3 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.error('❌ Ошибка регистрации SW:', err));
   });
 }
-
-
-
-

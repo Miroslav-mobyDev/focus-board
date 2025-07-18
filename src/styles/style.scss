@@ -3,7 +3,7 @@
   --primary-color: #6c63ff;
   --secondary-color: #4facfe;
   --background-color: #f4f7fa;
-  --card-bg: #f3f5f8;;
+  --card-bg: #f3f5f8;
   --text-color: #333;
   --sidebar-bg: #ffffff;
   --footer-bg: #e9eef5;
@@ -40,12 +40,14 @@ body {
 }
 
 .container {
-  max-width: 1260px;
+  max-width: 1600px;
   width: 100%;
   background-color: var(--card-bg);
   border-radius: 20px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 /* Layout */
@@ -117,7 +119,6 @@ body {
   transition: background-color 0.3s ease;
 }
 
-
 /* === Кнопки === */
 .btn {
   background: var(--gradient);
@@ -128,6 +129,7 @@ body {
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s ease-in-out;
+  margin-bottom: 10px;
 }
 
 .btn:hover {
@@ -159,17 +161,23 @@ main {
   border-radius: 0 0 20px 20px;
 }
 
-
 .board {
   display: flex;
   gap: 1.5rem;
   justify-content: space-between;
-  flex-wrap: wrap;
+}
+
+.kanban-column {
+  flex: 1 1 0;
+  min-width: 300px;
+  max-width: 33%;
+  background-color: transparent;
 }
 
 .kanban-column h3 {
   margin-bottom: 0.75rem;
 }
+
 /* === Карточка задачи === */
 .task-card {
   background: var(--card-bg);
@@ -203,6 +211,8 @@ main {
 
 /* === Форма === */
 .form-section {
+  display: flex;
+  flex-direction: column;
   padding: 2rem;
   background-color: var(--card-bg);
   border-top: 1px solid #eee;
@@ -210,11 +220,8 @@ main {
   transition: background-color 0.3s ease;
 }
 
-
 .form-row {
   display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
   gap: 1rem;
   margin-bottom: 1rem;
 }
@@ -237,20 +244,89 @@ input[type="date"] {
   color: #555;
 }
 
+#task-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* === Разделы === */
+#sections {
+  margin-top: 2rem;
+  padding-top: 1rem;
+  border-top: 1px solid #ccc;
+}
+
+#sections h2 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  color: var(--header-color);
+}
+
+#sections ul {
+  list-style: none;
+  padding-left: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.section-btn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--primary-color);
+  color: var(--text-color);
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.section-btn:hover {
+  background: var(--gradient);
+  color: white;
+  transform: scale(1.02);
+  border-color: transparent;
+}
+
+#section-tasks {
+  padding: 1.5rem;
+  background-color: var(--card-bg);
+  border-radius: 0 0 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.section-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
 /* === Адаптивность === */
 @media (max-width: 768px) {
   .layout {
     flex-direction: column;
   }
+
   .sidebar {
     width: 100%;
     border-right: none;
     border-bottom: 1px solid #ddd;
   }
+
   .board {
     flex-direction: column;
   }
+
   .nav-top {
     flex-direction: column;
+  }
+
+  .kanban-column {
+    max-width: 100%;
   }
 }

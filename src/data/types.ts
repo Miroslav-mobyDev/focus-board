@@ -1,4 +1,6 @@
 export type TaskStatus = 'todo' | 'in-progress' | 'done';
+export type TaskPriority = 'urgent' | 'secondary' | 'postpone' | undefined;
+
 
 export interface Task {
   id: string;
@@ -6,10 +8,13 @@ export interface Task {
   project: string;
   plannedMinutes: number;
   spentMinutes: number;
-  deadline: string; // ISO string
+  deadline: string;
   status: TaskStatus;
-  startTime?: number; // UNIX-время, если таймер работает
+  startTime?: number;
+  priority?: TaskPriority;
+   started?: boolean; 
 }
+
 
 export interface BoardData {
   tasks: Task[];
