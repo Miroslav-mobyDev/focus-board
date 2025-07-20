@@ -1,6 +1,6 @@
 import "./styles/style.scss";
 import { loadBoard, saveBoard } from './utils/storage';
-import type { Task, TaskStatus } from './data/types';
+import type { Task, TaskStatus, BoardData, TaskRepeatType } from './data/types';
 import { exportBoard, importBoard } from './utils/exportimport';
 import { renderAnalytics } from './analytics/AnalyticsPage';
 
@@ -9,7 +9,6 @@ const boardEl = document.getElementById('board')!;
 const boardData = loadBoard();
 const activeTimers = new Map<string, number>();
 const activeSeconds = new Map<string, number>();
-
 
 function updateTaskPriorities(tasks: Task[]) {
   const now = new Date();
@@ -37,7 +36,9 @@ function createTaskCard(task: Task): HTMLElement {
   card.className = 'task-card';
   card.draggable = true;
   card.dataset.id = task.id;
+
   card.innerHTML = `
+    <div class="deadline-bar"></div>
     <strong>${task.title}</strong>
     <span>Проект: ${task.project}</span>
     <span>План: ${task.plannedMinutes} мин</span>
@@ -48,16 +49,37 @@ function createTaskCard(task: Task): HTMLElement {
       <button class="btn small start-btn">▶ Старт</button>
       <button class="btn small add-btn">➕ Минуты</button>
       <button class="btn small delete-btn">🗑 Удалить</button>
+      <button class="repeat-btn btn">
+        ${task.repeat ? '✅ Повтор включен' : '🔁 Повторять'}
+      </button>
+      <button class="btn small pause-btn">Пауза</button>
     </div>
   `;
 
   const startBtn = card.querySelector('.start-btn') as HTMLButtonElement;
   const addBtn = card.querySelector('.add-btn') as HTMLButtonElement;
+  const deleteBtn = card.querySelector('.delete-btn') as HTMLButtonElement;
   const timerDisplay = card.querySelector('.timer-display') as HTMLSpanElement;
   const spentSpan = card.querySelector('.spent') as HTMLSpanElement;
-  const deleteBtn = card.querySelector('.delete-btn') as HTMLButtonElement;
+  const deadlineBar = card.querySelector('.deadline-bar') as HTMLDivElement;
 
-  // Отображение правильного текста на кнопке
+  // Полоска слева по сроку
+  const now = new Date();
+  const deadline = new Date(task.deadline);
+  const created = new Date(task.createdAt || task.deadline);
+  const total = deadline.getTime() - created.getTime();
+  const passed = now.getTime() - created.getTime();
+  const ratio = total > 0 ? passed / total : 0;
+
+  if (ratio < 0.5) {
+    deadlineBar.style.backgroundColor = 'var(--green)';
+  } else if (ratio < 0.9) {
+    deadlineBar.style.backgroundColor = 'var(--yellow)';
+  } else {
+    deadlineBar.style.backgroundColor = 'var(--red)';
+  }
+
+  // Отображение текста на кнопке
   if (task.status === 'in-progress') {
     startBtn.textContent = '✔ Завершить';
   } else {
@@ -90,7 +112,62 @@ function createTaskCard(task: Task): HTMLElement {
     }
   });
 
-  // Если задача уже завершена
+  const pauseBtn = card.querySelector('.pause-btn') as HTMLButtonElement;
+  pauseBtn.style.display = task.status === 'in-progress' ? 'inline-block' : 'none';
+
+  let isPaused = false;
+
+  pauseBtn.addEventListener('click', () => {
+    const intervalId = activeTimers.get(task.id);
+    const secondsElapsed = activeSeconds.get(task.id) ?? 0;
+
+    if (!isPaused) {
+      if (intervalId !== undefined) {
+        clearInterval(intervalId);
+        activeTimers.delete(task.id);
+      }
+      task.startTime = undefined;
+      timerDisplay.textContent = `⏸ На паузе (${secondsElapsed} сек)`;
+      pauseBtn.textContent = '▶️ Возобновить';
+      isPaused = true;
+    } else {
+      task.startTime = Date.now();
+      startTimer(task, spentSpan, timerDisplay);
+      pauseBtn.textContent = '⏸ Пауза';
+      isPaused = false;
+    }
+
+    saveBoard(boardData);
+  });
+
+  // Обработка кнопки "Повторять"
+  const repeatBtn = card.querySelector('.repeat-btn') as HTMLButtonElement;
+  repeatBtn.addEventListener('click', () => {
+    if (task.repeat) {
+      if (confirm('Отключить повторение задачи?')) {
+        task.repeat = false;
+        task.repeatInterval = undefined;
+        saveBoard(boardData);
+        renderBoard();
+        return;
+      }
+    } else {
+      const interval = prompt(
+        'Выберите интервал повторения:\n- daily (ежедневно)\n- weekly (еженедельно)\n- monthly (ежемесячно)',
+        task.repeatInterval || 'daily'
+      );
+      if (!interval || !['daily', 'weekly', 'monthly'].includes(interval)) {
+        alert('Некорректный интервал!');
+        return;
+      }
+      task.repeat = true;
+      task.repeatInterval = interval as TaskRepeatType;
+      saveBoard(boardData);
+      renderBoard();
+    }
+  });
+
+  // Если завершена
   if (task.status === 'done') {
     timerDisplay.textContent = `✅ Выполнено за ${task.spentMinutes} мин`;
     startBtn.remove();
@@ -98,16 +175,16 @@ function createTaskCard(task: Task): HTMLElement {
     return card;
   }
 
-  // Если задача уже была запущена ранее — продолжаем отсчёт
-  if (task.startTime) {
-    const passed = Math.floor((Date.now() - task.startTime) / 1000);
-    activeSeconds.set(task.id, passed);
-    timerDisplay.textContent = `⏱ ${passed} сек`;
+  // Продолжаем таймер
+  if (task.startTime && task.status === 'in-progress') {
+    const secondsElapsed = Math.floor((Date.now() - task.startTime) / 1000);
+    activeSeconds.set(task.id, secondsElapsed);
+    timerDisplay.textContent = `⏱ ${secondsElapsed} сек`;
     spentSpan.textContent = task.spentMinutes.toString();
     startTimer(task, spentSpan, timerDisplay);
   }
 
-  // Логика старта/завершения задачи
+  // Обработка нажатия "Старт" или "Завершить"
   startBtn.addEventListener('click', () => {
     if (task.status === 'todo') {
       task.status = 'in-progress';
@@ -115,14 +192,13 @@ function createTaskCard(task: Task): HTMLElement {
       activeSeconds.set(task.id, 0);
       saveBoard(boardData);
       startTimer(task, spentSpan, timerDisplay);
-       renderBoard();
-      startBtn.textContent = '✔ Завершить';
+      renderBoard();
       return;
     }
 
     if (task.status === 'in-progress') {
-      const confirmDone = confirm('Завершить задачу?');
-      if (!confirmDone) return;
+      const confirmed = confirm('Завершить задачу?');
+      if (!confirmed) return;
 
       const intervalId = activeTimers.get(task.id);
       if (intervalId !== undefined) {
@@ -133,34 +209,50 @@ function createTaskCard(task: Task): HTMLElement {
         activeSeconds.delete(task.id);
       }
 
-      if (task.startTime) {
-        const extra = Math.floor((Date.now() - task.startTime) / 1000);
-        task.spentMinutes += Math.floor(extra / 60);
-        task.startTime = undefined;
+      task.startTime = undefined;
+
+      // Если задача повторяющаяся — обновляем дедлайн и возвращаем в todo
+      if (task.repeat && task.repeatInterval) {
+        const currentDeadline = new Date(task.deadline);
+        switch (task.repeatInterval) {
+          case 'daily':
+            currentDeadline.setDate(currentDeadline.getDate() + 1);
+            break;
+          case 'weekly':
+            currentDeadline.setDate(currentDeadline.getDate() + 7);
+            break;
+          case 'monthly':
+            currentDeadline.setMonth(currentDeadline.getMonth() + 1);
+            break;
+        }
+        task.deadline = currentDeadline.toISOString().split('T')[0];
+        task.status = 'todo';
+        task.spentMinutes = 0;
+      } else {
+        task.status = 'done';
       }
 
-      task.status = 'done';
       saveBoard(boardData);
       renderBoard();
     }
   });
-// Сброс, если вручную вернули в 'todo'
-if (task.status === 'todo') {
-  const intervalId = activeTimers.get(task.id);
-  if (intervalId !== undefined) {
-    clearInterval(intervalId);
-    activeTimers.delete(task.id);
+
+  // Если вручную вернули обратно в "todo"
+  if (task.status === 'todo') {
+    const intervalId = activeTimers.get(task.id);
+    if (intervalId !== undefined) {
+      clearInterval(intervalId);
+      activeTimers.delete(task.id);
+    }
     activeSeconds.delete(task.id);
+    task.startTime = undefined;
+    startBtn.textContent = '▶ Старт';
+    timerDisplay.textContent = '';
+    spentSpan.textContent = task.spentMinutes.toString();
   }
-  task.startTime = undefined;
-  startBtn.textContent = '▶ Старт';
-  timerDisplay.textContent = '';
-  spentSpan.textContent = task.spentMinutes.toString();
-}
 
   return card;
 }
-
 
 function startTimer(task: Task, spentSpan: HTMLElement, timerDisplay: HTMLElement) {
   const taskId = task.id;
@@ -184,7 +276,7 @@ function startTimer(task: Task, spentSpan: HTMLElement, timerDisplay: HTMLElemen
 }
 
 function renderBoard() {
-  updateTaskPriorities(boardData.tasks); // ⬅️ [НОВОЕ]
+  updateTaskPriorities(boardData.tasks); 
   boardEl.innerHTML = '';
   statuses.forEach(status => {
     const column = document.createElement('div');
@@ -253,6 +345,7 @@ function onDrop(e: DragEvent, newStatus: TaskStatus) {
   }
 
   saveBoard(boardData);
+
   renderBoard();
 }
 
@@ -362,7 +455,6 @@ kanbanBtn.addEventListener("click", () => {
   renderBoard();
 });
 
-// ⬅️ [НОВОЕ] Отрисовка разделов по приоритету
 document.querySelectorAll('.section-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     const section = (btn as HTMLButtonElement).dataset.section!;
@@ -375,8 +467,13 @@ document.querySelectorAll('.section-btn').forEach(btn => {
 });
 
 function renderSectionTasks(section: string) {
-  updateTaskPriorities(boardData.tasks); // ⬅️ [НОВОЕ]
-  const filtered = boardData.tasks.filter(task => task.priority === section);
+  let filtered: Task[];
+  if (section === 'repeat') {
+    filtered = boardData.tasks.filter(task => task.repeat);
+  } else {
+    updateTaskPriorities(boardData.tasks);
+    filtered = boardData.tasks.filter(task => task.priority === section);
+  }
   sectionTasksSection.innerHTML = `
     <h2 class="section-title">${getSectionTitle(section)}</h2>
     <button id="back-to-board" class="btn" style="margin-bottom:20px;">← Назад к доске</button>
@@ -395,6 +492,7 @@ function getSectionTitle(section: string): string {
     case 'urgent': return '⚡ Срочные задачи';
     case 'secondary': return '📌 Второстепенные задачи';
     case 'postpone': return '🕒 Перенести на потом';
+    case 'repeat': return '🔁 Повторяющиеся задачи';
     default: return '';
   }
 }
@@ -406,6 +504,10 @@ function renderTaskCardHTML(task: Task): string {
       <span>Проект: ${task.project}</span>
       <span>Минут: ${task.plannedMinutes}</span>
       <span>Дедлайн: ${task.deadline}</span>
+      ${task.repeat ? `<span>Следующее появление: ${task.deadline}</span>` : ''}
+      <button class="repeat-btn" data-task-id="${task.id}">
+        ${task.repeat ? '🔁 Повторяется' : '↻ Повторять'}
+      </button>
     </div>
   `;
 }

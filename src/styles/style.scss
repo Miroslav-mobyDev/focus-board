@@ -9,6 +9,9 @@
   --footer-bg: #e9eef5;
   --gradient: linear-gradient(to right, #6c63ff, #4facfe);
   --header-color: #222;
+  --green: #27ae60;
+  --yellow: #f1c40f;
+  --red: #e74c3c;
 }
 
 [data-theme="dark"] {
@@ -180,6 +183,8 @@ main {
 
 /* === Карточка задачи === */
 .task-card {
+    position:relative;
+     border-left: 6px solid var(--border-default);
   background: var(--card-bg);
   color: var(--text-color);
   border-radius: 1rem;
@@ -190,7 +195,16 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border-left: 6px solid var(--primary-color);
+  
+}
+
+.deadline-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  border-radius: 10px 0 0 10px;
 }
 
 .task-card:hover {
