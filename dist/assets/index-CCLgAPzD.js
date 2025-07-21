@@ -49,7 +49,7 @@
       <span>Минут: ${i.plannedMinutes}</span>
       <span>Дедлайн: ${i.deadline}</span>
       ${i.repeat?`<span>Следующее появление: ${i.deadline}</span>`:""}
-      <button class="repeat-btn" data-task-id="${i.id}">
+      <button class="repeat-btn btn" data-task-id="${i.id}">
         ${i.repeat?"🔁 Повторяется":"↻ Повторять"}
       </button>
     </div>
