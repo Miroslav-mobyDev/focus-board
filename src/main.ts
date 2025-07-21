@@ -505,7 +505,7 @@ function renderTaskCardHTML(task: Task): string {
       <span>Минут: ${task.plannedMinutes}</span>
       <span>Дедлайн: ${task.deadline}</span>
       ${task.repeat ? `<span>Следующее появление: ${task.deadline}</span>` : ''}
-      <button class="repeat-btn" data-task-id="${task.id}">
+      <button class="repeat-btn btn" data-task-id="${task.id}">
         ${task.repeat ? '🔁 Повторяется' : '↻ Повторять'}
       </button>
     </div>
