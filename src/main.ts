@@ -142,6 +142,7 @@ function createTaskCard(task: Task): HTMLElement {
 
   // Обработка кнопки "Повторять"
   const repeatBtn = card.querySelector('.repeat-btn') as HTMLButtonElement;
+  repeatBtn.classList.add('btn'); // второй класс btn
   repeatBtn.addEventListener('click', () => {
     if (task.repeat) {
       if (confirm('Отключить повторение задачи?')) {
@@ -211,7 +212,7 @@ function createTaskCard(task: Task): HTMLElement {
 
       task.startTime = undefined;
 
-      // Если задача повторяющаяся — обновляем дедлайн и возвращаем в todo
+      // Если задача повторяющаяся — обновляем дедлайн и ставим статус done
       if (task.repeat && task.repeatInterval) {
         const currentDeadline = new Date(task.deadline);
         switch (task.repeatInterval) {
@@ -226,7 +227,7 @@ function createTaskCard(task: Task): HTMLElement {
             break;
         }
         task.deadline = currentDeadline.toISOString().split('T')[0];
-        task.status = 'todo';
+        task.status = 'done'; // всегда done!
         task.spentMinutes = 0;
       } else {
         task.status = 'done';
